@@ -22,10 +22,20 @@ package org.sonar.plsqlopen.squid;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
+import java.util.List;
 
+import org.sonar.api.batch.fs.InputFile;
+import org.sonar.api.batch.rule.Checks;
+import org.sonar.api.batch.sensor.SensorContext;
+import org.sonar.api.measures.FileLinesContextFactory;
+import org.sonar.api.utils.log.Logger;
+import org.sonar.api.utils.log.Loggers;
 import org.sonar.plsqlopen.DefaultPlSqlVisitorContext;
 import org.sonar.plsqlopen.FormsMetadataAwareCheck;
+import org.sonar.plsqlopen.PlSqlFile;
+import org.sonar.plsqlopen.PlSqlVisitorContext;
 import org.sonar.plsqlopen.SonarComponents;
+import org.sonar.plsqlopen.checks.PlSqlCheck;
 import org.sonar.plsqlopen.parser.PlSqlParser;
 import org.sonar.plugins.plsqlopen.api.PlSqlGrammar;
 import org.sonar.plugins.plsqlopen.api.PlSqlKeyword;
@@ -49,18 +59,54 @@ import org.sonar.squidbridge.metrics.LinesVisitor;
 import com.google.common.collect.ImmutableList;
 import com.sonar.sslr.api.AstNodeType;
 import com.sonar.sslr.api.Grammar;
+import com.sonar.sslr.api.RecognitionException;
 import com.sonar.sslr.impl.Parser;
 
 public class PlSqlAstScanner {
 
-    private PlSqlAstScanner() {
+    private static final Logger LOG = Loggers.get(PlSqlAstScanner.class);
+    
+    private final SensorContext context;
+    private final Parser<Grammar> parser;
+    private final List<InputFile> inputFiles;
+    private final Collection<PlSqlCheck> checks;
+    private final SonarComponents components;
+
+    public PlSqlAstScanner(SensorContext context, Collection<PlSqlCheck> checks, List<InputFile> inputFiles, SonarComponents components) {
+      this.context = context;
+      this.checks = checks;
+      this.inputFiles = inputFiles;
+      this.parser = PlSqlParser.create(new PlSqlConfiguration(context.fileSystem().encoding()));
+      this.components = components;
+    }
+
+    public void scanFiles() {
+        for (InputFile pythonFile : inputFiles) {
+            scanFile(pythonFile);
+        }
+    }
+
+    private void scanFile(InputFile inputFile) {
+        PlSqlFile plSqlFile = SonarQubePlSqlFile.create(inputFile, context);
+        PlSqlVisitorContext visitorContext;
+        try {
+            visitorContext = new DefaultPlSqlVisitorContext<>(parser.parse(plSqlFile.content()), plSqlFile, components);
+        } catch (RecognitionException e) {
+            visitorContext = new DefaultPlSqlVisitorContext<>(plSqlFile, e, components);
+            LOG.error("Unable to parse file: " + inputFile.absolutePath());
+            LOG.error(e.getMessage());
+        }
+
+        for (PlSqlCheck check : checks) {
+            check.scanFile(visitorContext);
+        }
     }
     
-    public static SourceFile scanSingleFile(File file, SonarComponents components, SquidAstVisitor<Grammar> visitor) {
+    public static SourceFile scanSingleFile(File file, SonarComponents components, PlSqlCheck visitor) {
         return scanSingleFile(file, components, ImmutableList.of(visitor));
     }
 
-    public static SourceFile scanSingleFile(File file, SonarComponents components, Collection<SquidAstVisitor<Grammar>> visitors) {
+    public static SourceFile scanSingleFile(File file, SonarComponents components, Collection<PlSqlCheck> visitors) {
         if (!file.isFile()) {
             throw new IllegalArgumentException("File '" + file + "' not found.");
         }
@@ -74,7 +120,7 @@ public class PlSqlAstScanner {
         return (SourceFile) sources.iterator().next();
     }
     
-    public static AstScanner<Grammar> create(PlSqlConfiguration conf, SonarComponents components, Collection<SquidAstVisitor<Grammar>> visitors) {
+    public static AstScanner<Grammar> create(PlSqlConfiguration conf, SonarComponents components, Collection<PlSqlCheck> visitors) {
         final SquidAstVisitorContextImpl<Grammar> context = 
                 new DefaultPlSqlVisitorContext<>(new SourceProject("PL/SQL Project"), components);
         final Parser<Grammar> parser = PlSqlParser.create(conf);
@@ -90,13 +136,13 @@ public class PlSqlAstScanner {
 
         /* External visitors (typically Check ones) */
         if (visitors != null) {
-            for (SquidAstVisitor<Grammar> visitor : visitors) {
+            for (PlSqlCheck visitor : visitors) {
                 if (visitor instanceof CharsetAwareVisitor) {
                     ((CharsetAwareVisitor) visitor).setCharset(conf.getCharset());
                 }
                 
                 if (!(visitor instanceof FormsMetadataAwareCheck) || components.getFormsMetadata() != null) {
-                    builder.withSquidAstVisitor(visitor);
+                    //builder.withSquidAstVisitor(visitor);
                 }
             }
         }

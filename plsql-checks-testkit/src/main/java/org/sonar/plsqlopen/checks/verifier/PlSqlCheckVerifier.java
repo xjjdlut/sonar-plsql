@@ -51,10 +51,10 @@ import com.sonar.sslr.api.Grammar;
 import com.sonar.sslr.api.Token;
 import com.sonar.sslr.api.Trivia;
 
-public class PlSqlCheckVerifier extends SquidCheck<Grammar> implements AstAndTokenVisitor {
+public class PlSqlCheckVerifier extends PlSqlCheck {
 
     private List<TestIssue> expectedIssues = new ArrayList<>();
-
+    
     public static void verify(String filename, PlSqlCheck check) {
         verify(filename, check, null);
     }

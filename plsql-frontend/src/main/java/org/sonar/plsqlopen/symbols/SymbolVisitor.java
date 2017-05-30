@@ -59,27 +59,27 @@ public class SymbolVisitor extends PlSqlCheck {
     @Override
     public void visitFile(AstNode ast) {
         symbolTable = new SymbolTableImpl();
-        symbolizable = getPlSqlContext().getSymbolizable();
+        symbolizable = getContext().getSymbolizable();
         
         // ast is null when the file has a parsing error
         if (ast != null) {
             visit(ast);
         }
         
-        getPlSqlContext().setSymbolTable(symbolTable);
+        getContext().setSymbolTable(symbolTable);
     }
     
     @Override
     public void visitNode(AstNode astNode) {
         if (astNode.is(scopeHolders)) {
-            getPlSqlContext().setCurrentScope(symbolTable.getScopeFor(astNode));
+            getContext().setCurrentScope(symbolTable.getScopeFor(astNode));
         }
     }
     
     @Override
     public void leaveNode(AstNode astNode) {
         if (astNode.is(scopeHolders)) {
-            getPlSqlContext().setCurrentScope(getPlSqlContext().getCurrentScope().outer());
+            getContext().setCurrentScope(getContext().getCurrentScope().outer());
         }
     }
     

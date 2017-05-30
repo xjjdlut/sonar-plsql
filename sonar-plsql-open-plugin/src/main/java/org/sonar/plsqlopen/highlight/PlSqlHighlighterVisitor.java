@@ -34,7 +34,7 @@ import com.sonar.sslr.api.Token;
 import com.sonar.sslr.api.TokenType;
 import com.sonar.sslr.api.Trivia;
 
-public class PlSqlHighlighterVisitor extends PlSqlCheck implements AstAndTokenVisitor {
+public class PlSqlHighlighterVisitor extends PlSqlCheck {
 
     private SensorContext context;
     private NewHighlighting highlighting;

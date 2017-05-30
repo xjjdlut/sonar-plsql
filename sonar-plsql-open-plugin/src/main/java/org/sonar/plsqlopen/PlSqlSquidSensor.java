@@ -37,6 +37,7 @@ import org.sonar.api.ce.measure.RangeDistributionBuilder;
 import org.sonar.api.config.Settings;
 import org.sonar.api.measures.CoreMetrics;
 import org.sonar.plsqlopen.checks.CheckList;
+import org.sonar.plsqlopen.checks.PlSqlCheck;
 import org.sonar.plsqlopen.highlight.PlSqlHighlighterVisitor;
 import org.sonar.plsqlopen.lexer.PlSqlLexer;
 import org.sonar.plsqlopen.squid.PlSqlAstScanner;
@@ -93,7 +94,7 @@ public class PlSqlSquidSensor implements Sensor {
     @Override
     public void execute(SensorContext context) {
         this.context = context;
-        List<SquidAstVisitor<Grammar>> visitors = new ArrayList<>();
+        List<PlSqlCheck> visitors = new ArrayList<>();
         visitors.add(new SymbolVisitor());
         visitors.add(new PlSqlHighlighterVisitor(context));
         visitors.addAll(checks.all());
