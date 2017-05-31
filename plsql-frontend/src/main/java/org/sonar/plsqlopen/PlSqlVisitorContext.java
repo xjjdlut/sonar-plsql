@@ -48,7 +48,7 @@ public interface PlSqlVisitorContext {
     
     void setSymbolTable(SymbolTable symbolTable);
     
-    NewSymbolTable getSymbolizable();
+    //NewSymbolTable getSymbolizable();
     
     void setCurrentScope(Scope scope);
     

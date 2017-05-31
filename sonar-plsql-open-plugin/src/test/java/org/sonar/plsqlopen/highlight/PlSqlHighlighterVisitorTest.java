@@ -23,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -32,6 +33,7 @@ import org.sonar.api.batch.fs.internal.TestInputFileBuilder;
 import org.sonar.api.batch.sensor.highlighting.TypeOfText;
 import org.sonar.api.batch.sensor.internal.SensorContextTester;
 import org.sonar.plsqlopen.SonarComponents;
+import org.sonar.plsqlopen.TestPlSqlVisitorRunner;
 import org.sonar.plsqlopen.squid.PlSqlAstScanner;
 
 import com.google.common.base.Charsets;
@@ -68,16 +70,19 @@ public class PlSqlHighlighterVisitorTest {
         String content = Files.toString(new File("src/test/resources/org/sonar/plsqlopen/highlight.sql"), Charsets.UTF_8);
         Files.write(content.replaceAll("\\r\\n", "\n").replaceAll("\\n", eol), file, Charsets.UTF_8);
         
-        DefaultInputFile inputFile = new TestInputFileBuilder("key", "test.sql").setLanguage("plsqlopen")
-                .initMetadata(Files.toString(file, Charsets.UTF_8)).setModuleBaseDir(baseDir.toPath()).build();
+        DefaultInputFile inputFile = new TestInputFileBuilder("key", "test.sql")
+                .setLanguage("plsqlopen")
+                .setCharset(Charsets.UTF_8)
+                .initMetadata(Files.toString(file, Charsets.UTF_8))
+                .setModuleBaseDir(baseDir.toPath())
+                .build();
         
         SensorContextTester context = SensorContextTester.create(baseDir);
         context.fileSystem().add(inputFile);
         SonarComponents components = new SonarComponents(context).getTestInstance();
 
         PlSqlHighlighterVisitor highlighter = new PlSqlHighlighterVisitor(context);
-        
-        PlSqlAstScanner.scanSingleFile(inputFile.file(), components, highlighter);
+        TestPlSqlVisitorRunner.scanFile(file, highlighter);
         
         String key = inputFile.key();
         assertThat(context.highlightingTypeAt(key, 1, lineOffset(1))).containsExactly(TypeOfText.KEYWORD);

@@ -30,8 +30,6 @@ import com.sonar.sslr.api.AstNode;
 
 public abstract class PlSqlCheck extends PlSqlVisitor {
 
-    private List<AnalyzerMessage> issues = new ArrayList<>();
-
     protected PlSqlVisitorContext.Location newLocation(String message, AstNode node) {
         return new PlSqlVisitorContext.Location(message, node);
     }

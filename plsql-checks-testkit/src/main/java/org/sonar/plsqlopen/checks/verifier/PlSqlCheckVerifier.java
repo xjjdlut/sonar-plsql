@@ -78,7 +78,7 @@ public class PlSqlCheckVerifier extends PlSqlCheck {
         SonarComponents components = new SonarComponents(context).getTestInstance();
         components.setFormsMetadata(metadata);
         
-        PlSqlAstScanner.scanSingleFile(file, components, ImmutableList.of(new SymbolVisitor(), check, verifier));
+        PlSqlAstScanner.scanSingleFile(file, components, ImmutableList.of(check, verifier));
         
         Iterator<AnalyzerMessage> actualIssues = getActualIssues(components);
         List<TestIssue> expectedIssues = Ordering.natural().onResultOf(TestIssue::line).sortedCopy(verifier.expectedIssues);

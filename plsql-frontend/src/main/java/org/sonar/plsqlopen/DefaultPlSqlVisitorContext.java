@@ -25,6 +25,8 @@ import java.util.List;
 import org.sonar.api.batch.sensor.symbol.NewSymbolTable;
 import org.sonar.plsqlopen.checks.PlSqlVisitor;
 import org.sonar.plsqlopen.metadata.FormsMetadata;
+import org.sonar.plsqlopen.symbols.SymbolVisitor;
+import org.sonar.plsqlopen.symbols.SymbolVisitorTest;
 import org.sonar.plugins.plsqlopen.api.symbols.Scope;
 import org.sonar.plugins.plsqlopen.api.symbols.SymbolTable;
 import org.sonar.squidbridge.SquidAstVisitorContextImpl;
@@ -56,6 +58,9 @@ public class DefaultPlSqlVisitorContext<G extends Grammar> extends SquidAstVisit
     
     public DefaultPlSqlVisitorContext(AstNode rootTree, PlSqlFile plSqlFile, SonarComponents components) {
         this(rootTree, plSqlFile, null, components);
+        SymbolVisitor symbolTableBuilderVisitor = new SymbolVisitor(getSymbolizable());
+        symbolTableBuilderVisitor.scanFile(this);
+        symbolTable = symbolTableBuilderVisitor.getSymbolTable();
     }
 
     public DefaultPlSqlVisitorContext(PlSqlFile pythonFile, RecognitionException parsingException, SonarComponents components) {
@@ -100,7 +105,7 @@ public class DefaultPlSqlVisitorContext<G extends Grammar> extends SquidAstVisit
         this.symbolTable = symbolTable;
     }
     
-    @Override
+    /*@Override*/
     public NewSymbolTable getSymbolizable() {
         return components.symbolizableFor(components.inputFromIOFile(getFileInternal()));
     }

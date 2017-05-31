@@ -1,5 +1,6 @@
 package org.sonar.plsqlopen.checks;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -13,7 +14,7 @@ public class PlSqlVisitor {
 
     private PlSqlVisitorContext context;
 
-    private Set<AstNodeType> astNodeTypesToVisit;
+    private Set<AstNodeType> astNodeTypesToVisit = new HashSet<>();
     
     public void init() {
      // default implementation does nothing
@@ -50,6 +51,7 @@ public class PlSqlVisitor {
     }
 
     public void scanFile(PlSqlVisitorContext context) {
+        init();
         this.context = context;
         AstNode tree = context.rootTree();
         if (tree != null) {

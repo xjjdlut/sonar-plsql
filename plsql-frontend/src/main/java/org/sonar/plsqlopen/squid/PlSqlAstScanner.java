@@ -101,10 +101,6 @@ public class PlSqlAstScanner {
             check.scanFile(visitorContext);
         }
     }
-    
-    public static SourceFile scanSingleFile(File file, SonarComponents components, PlSqlCheck visitor) {
-        return scanSingleFile(file, components, ImmutableList.of(visitor));
-    }
 
     public static SourceFile scanSingleFile(File file, SonarComponents components, Collection<PlSqlCheck> visitors) {
         if (!file.isFile()) {

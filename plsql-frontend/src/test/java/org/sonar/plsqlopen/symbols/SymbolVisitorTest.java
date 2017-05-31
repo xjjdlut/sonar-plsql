@@ -24,6 +24,7 @@ import static org.assertj.core.api.Assertions.tuple;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -32,6 +33,7 @@ import org.sonar.api.batch.fs.internal.DefaultInputFile;
 import org.sonar.api.batch.fs.internal.TestInputFileBuilder;
 import org.sonar.api.batch.sensor.internal.SensorContextTester;
 import org.sonar.plsqlopen.SonarComponents;
+import org.sonar.plsqlopen.TestPlSqlVisitorRunner;
 import org.sonar.plsqlopen.squid.PlSqlAstScanner;
 
 import com.google.common.base.Charsets;
@@ -53,17 +55,23 @@ public class SymbolVisitorTest {
         String content = Files.toString(new File("src/test/resources/symbols/symbols.sql"), Charsets.UTF_8);
         Files.write(content.replaceAll("\\r\\n", "\n").replaceAll("\\n", eol), file, Charsets.UTF_8);
         
-        DefaultInputFile inputFile = new TestInputFileBuilder("key", "test.sql").setLanguage("plsqlopen")
-                .initMetadata(Files.toString(file, Charsets.UTF_8)).setModuleBaseDir(baseDir.toPath()).build();
+        DefaultInputFile inputFile = new TestInputFileBuilder("key", "test.sql")
+                .setLanguage("plsqlopen")
+                .setCharset(Charsets.UTF_8)
+                .initMetadata(Files.toString(file, Charsets.UTF_8))
+                .setModuleBaseDir(baseDir.toPath())
+                .build();
         key = inputFile.key();
         context = SensorContextTester.create(baseDir);
         context.fileSystem().add(inputFile);
         
         SonarComponents components = new SonarComponents(context).getTestInstance();
         
-        SymbolVisitor symbolVisitor = new SymbolVisitor();
+        SymbolVisitor symbolVisitor = new SymbolVisitor(context, inputFile);
+        TestPlSqlVisitorRunner.scanFile(file, symbolVisitor);
         
-        PlSqlAstScanner.scanSingleFile(inputFile.file(), components, symbolVisitor);
+        //PlSqlAstScanner scanner = new PlSqlAstScanner(context, Arrays.asList(symbolVisitor), Arrays.asList(inputFile), components);
+        //scanner.scanFiles();
     }
     
     @Test
