@@ -34,6 +34,7 @@ import org.sonar.api.batch.fs.internal.TestInputFileBuilder;
 import org.sonar.api.batch.sensor.internal.SensorContextTester;
 import org.sonar.plsqlopen.PlSqlVisitorContext;
 import org.sonar.plsqlopen.TestPlSqlVisitorRunner;
+import org.sonar.plsqlopen.highlight.PlSqlHighlighterVisitor;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
@@ -64,8 +65,10 @@ public class SymbolVisitorTest {
         context = SensorContextTester.create(baseDir);
         context.fileSystem().add(inputFile);
         
-        PlSqlVisitorContext visitorContext = TestPlSqlVisitorRunner.createContext(file);
-        (new SymbolHighlighter()).highlight(context.newSymbolTable().onFile(inputFile), visitorContext.getSymbolTable());
+        SymbolVisitor visitor = new SymbolVisitor();
+        TestPlSqlVisitorRunner.scanFile(file, visitor);
+        
+        (new SymbolHighlighter()).highlight(context.newSymbolTable().onFile(inputFile), visitor.getSymbolTable());
     }
     
     @Test

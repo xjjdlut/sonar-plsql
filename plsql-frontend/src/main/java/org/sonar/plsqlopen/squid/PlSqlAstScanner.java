@@ -80,8 +80,8 @@ public class PlSqlAstScanner {
     }
 
     public void scanFiles() {
-        for (InputFile pythonFile : inputFiles) {
-            scanFile(pythonFile);
+        for (InputFile plSqlFile : inputFiles) {
+            scanFile(plSqlFile);
         }
     }
 

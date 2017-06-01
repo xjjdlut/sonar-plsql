@@ -80,7 +80,6 @@ public class PlSqlHighlighterVisitorTest {
         
         SensorContextTester context = SensorContextTester.create(baseDir);
         context.fileSystem().add(inputFile);
-        SonarComponents components = new SonarComponents(context).getTestInstance();
 
         PlSqlHighlighterVisitor highlighter = new PlSqlHighlighterVisitor(context, inputFile);
         TestPlSqlVisitorRunner.scanFile(file, highlighter);

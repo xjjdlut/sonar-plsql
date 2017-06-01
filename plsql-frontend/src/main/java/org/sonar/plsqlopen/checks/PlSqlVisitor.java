@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Set;
 
 import org.sonar.plsqlopen.PlSqlVisitorContext;
+import org.sonar.plugins.plsqlopen.api.symbols.Scope;
+import org.sonar.plugins.plsqlopen.api.symbols.SymbolTable;
 
 import com.sonar.sslr.api.AstNode;
 import com.sonar.sslr.api.AstNodeType;
@@ -67,6 +69,16 @@ public class PlSqlVisitor {
 
     private void scanNode(AstNode node, Set<AstNodeType> astNodeTypesToVisit) {
         boolean isSubscribedType = astNodeTypesToVisit.contains(node.getType());
+        
+        SymbolTable symbolTable = getContext().getSymbolTable();
+        Scope scope = null;
+        if (symbolTable != null) {
+            scope = getContext().getSymbolTable().getScopeFor(node);
+        }
+        
+        if (scope != null) {
+            getContext().setCurrentScope(scope);
+        }
 
         if (isSubscribedType) {
             visitNode(node);
@@ -84,6 +96,10 @@ public class PlSqlVisitor {
         }
 
         if (isSubscribedType) {
+            if (scope != null) {
+                getContext().setCurrentScope(scope.outer());
+            }
+            
             leaveNode(node);
         }
     }
