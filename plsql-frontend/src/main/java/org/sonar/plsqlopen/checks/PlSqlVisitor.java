@@ -94,12 +94,12 @@ public class PlSqlVisitor {
                 scanNode(child, astNodeTypesToVisit);
             }
         }
+        
+        if (scope != null) {
+            getContext().setCurrentScope(scope.outer());
+        }
 
         if (isSubscribedType) {
-            if (scope != null) {
-                getContext().setCurrentScope(scope.outer());
-            }
-            
             leaveNode(node);
         }
     }

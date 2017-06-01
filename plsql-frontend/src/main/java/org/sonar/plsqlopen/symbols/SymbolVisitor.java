@@ -67,20 +67,6 @@ public class SymbolVisitor extends PlSqlCheck {
     }
     
     @Override
-    public void visitNode(AstNode astNode) {
-        if (astNode.is(scopeHolders)) {
-            getContext().setCurrentScope(symbolTable.getScopeFor(astNode));
-        }
-    }
-    
-    @Override
-    public void leaveNode(AstNode astNode) {
-        if (astNode.is(scopeHolders)) {
-            getContext().setCurrentScope(getContext().getCurrentScope().outer());
-        }
-    }
-    
-    @Override
     public void leaveFile(AstNode node) {
         currentScope = null;
     }

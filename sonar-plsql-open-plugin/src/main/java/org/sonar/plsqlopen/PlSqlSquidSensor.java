@@ -100,100 +100,105 @@ public class PlSqlSquidSensor implements Sensor {
         visitors.addAll(checks.all());
         configuration = new PlSqlConfiguration(context.fileSystem().encoding());
         
-        this.scanner = PlSqlAstScanner.create(configuration, components, visitors);
+        FilePredicates p = context.fileSystem().predicates();
+        ArrayList<InputFile> inputFiles = Lists.newArrayList(context.fileSystem().inputFiles(p.and(p.hasType(InputFile.Type.MAIN), p.hasLanguage(PlSql.KEY))));
+        
+        PlSqlAstScanner scan = new PlSqlAstScanner(context, visitors, inputFiles, components);
+        scan.scanFiles();
+        /*this.scanner = PlSqlAstScanner.create(configuration, components, visitors);
         FilePredicates p = context.fileSystem().predicates();
         scanner.scanFiles(Lists.newArrayList(context.fileSystem().files(p.and(p.hasType(InputFile.Type.MAIN), p.hasLanguage(PlSql.KEY)))));
 
         Collection<SourceCode> squidSourceFiles = scanner.getIndex().search(new QueryByType(SourceFile.class));
-        save(squidSourceFiles);
+        save(squidSourceFiles);*/
     }
 
-    private void save(Collection<SourceCode> squidSourceFiles) {
-        for (SourceCode squidSourceFile : squidSourceFiles) {
-            SourceFile squidFile = (SourceFile) squidSourceFile;
+//    private void save(Collection<SourceCode> squidSourceFiles) {
+//        for (SourceCode squidSourceFile : squidSourceFiles) {
+//            SourceFile squidFile = (SourceFile) squidSourceFile;
+//
+//            InputFile inputFile = context.fileSystem().inputFile(context.fileSystem().predicates()
+//                    .is(new File(squidFile.getKey())));
+//
+//            if (inputFile != null) {
+//                saveFilesComplexityDistribution(inputFile, squidFile);
+//                saveFunctionsComplexityDistribution(inputFile, squidFile);
+//                saveMeasures(inputFile, squidFile);
+//                saveCpdTokens(inputFile);
+//            }
+//        }
+//    }
 
-            InputFile inputFile = context.fileSystem().inputFile(context.fileSystem().predicates()
-                    .is(new File(squidFile.getKey())));
-
-            if (inputFile != null) {
-                saveFilesComplexityDistribution(inputFile, squidFile);
-                saveFunctionsComplexityDistribution(inputFile, squidFile);
-                saveMeasures(inputFile, squidFile);
-                saveCpdTokens(inputFile);
-            }
-        }
-    }
-
-    private void saveMeasures(InputFile sonarFile, SourceFile squidFile) {
-        context.<Integer>newMeasure()
-                .on(sonarFile)
-                .forMetric(CoreMetrics.FILES)
-                .withValue(squidFile.getInt(PlSqlMetric.FILES))
-                .save();
-        
-        context.<Integer>newMeasure().on(sonarFile)
-                .forMetric(CoreMetrics.NCLOC)
-                .withValue(squidFile.getInt(PlSqlMetric.LINES_OF_CODE))
-                .save();
-        
-        context.<Integer>newMeasure().on(sonarFile)
-                .forMetric(CoreMetrics.COMMENT_LINES)
-                .withValue(squidFile.getInt(PlSqlMetric.COMMENT_LINES))
-                .save();
-        
-        context.<Integer>newMeasure().on(sonarFile)
-                .forMetric(CoreMetrics.COMPLEXITY)
-                .withValue(squidFile.getInt(PlSqlMetric.COMPLEXITY))
-                .save();
-        
-        context.<Integer>newMeasure().on(sonarFile)
-                .forMetric(CoreMetrics.FUNCTIONS)
-                .withValue(squidFile.getInt(PlSqlMetric.METHODS))
-                .save();
-        
-        context.<Integer>newMeasure().on(sonarFile)
-                .forMetric(CoreMetrics.STATEMENTS)
-                .withValue(squidFile.getInt(PlSqlMetric.STATEMENTS))
-                .save();
-    }
+//    private void saveMeasures(InputFile sonarFile, SourceFile squidFile) {
+//        context.<Integer>newMeasure()
+//                .on(sonarFile)
+//                .forMetric(CoreMetrics.FILES)
+//                .withValue(squidFile.getInt(PlSqlMetric.FILES))
+//                .save();
+//        
+//        context.<Integer>newMeasure().on(sonarFile)
+//                .forMetric(CoreMetrics.NCLOC)
+//                .withValue(squidFile.getInt(PlSqlMetric.LINES_OF_CODE))
+//                .save();
+//        
+//        context.<Integer>newMeasure().on(sonarFile)
+//                .forMetric(CoreMetrics.COMMENT_LINES)
+//                .withValue(squidFile.getInt(PlSqlMetric.COMMENT_LINES))
+//                .save();
+//        
+//        context.<Integer>newMeasure().on(sonarFile)
+//                .forMetric(CoreMetrics.COMPLEXITY)
+//                .withValue(squidFile.getInt(PlSqlMetric.COMPLEXITY))
+//                .save();
+//        
+//        context.<Integer>newMeasure().on(sonarFile)
+//                .forMetric(CoreMetrics.FUNCTIONS)
+//                .withValue(squidFile.getInt(PlSqlMetric.METHODS))
+//                .save();
+//        
+//        context.<Integer>newMeasure().on(sonarFile)
+//                .forMetric(CoreMetrics.STATEMENTS)
+//                .withValue(squidFile.getInt(PlSqlMetric.STATEMENTS))
+//                .save();
+//    }
     
-    private void saveFunctionsComplexityDistribution(InputFile sonarFile, SourceFile squidFile) {
-        Collection<SourceCode> squidFunctionsInFile = scanner.getIndex().search(new QueryByParent(squidFile),
-                new QueryByType(SourceFunction.class));
-        RangeDistributionBuilder complexityDistribution = new RangeDistributionBuilder(LIMITS_COMPLEXITY_METHODS);
-        for (SourceCode squidFunction : squidFunctionsInFile) {
-            complexityDistribution.add(squidFunction.getDouble(PlSqlMetric.COMPLEXITY));
-        }
-        
-        context.<String>newMeasure().on(sonarFile)
-                .forMetric(CoreMetrics.FUNCTION_COMPLEXITY_DISTRIBUTION)
-                .withValue(complexityDistribution.build())
-                .save();
-    }
-
-    private void saveFilesComplexityDistribution(InputFile sonarFile, SourceFile squidFile) {
-        RangeDistributionBuilder complexityDistribution = new RangeDistributionBuilder(LIMITS_COMPLEXITY_FILES);
-        complexityDistribution.add(squidFile.getDouble(PlSqlMetric.COMPLEXITY));
-        context.<String>newMeasure().on(sonarFile)
-                .forMetric(CoreMetrics.FILE_COMPLEXITY_DISTRIBUTION)
-                .withValue(complexityDistribution.build())
-                .save();
-    }
-    
-    private void saveCpdTokens(InputFile inputFile) {
-        NewCpdTokens newCpdTokens = context.newCpdTokens().onFile(inputFile);
-        Lexer lexer = PlSqlLexer.create(configuration);
-        String fileName = inputFile.absolutePath();
-        List<Token> tokens = lexer.lex(new File(fileName));
-        for (Token token : tokens) {
-            if (token.getType() == GenericTokenType.EOF) {
-                continue;
-            }
-            TokenLocation location = TokenLocation.from(token);
-            newCpdTokens.addToken(location.line(), location.column(), location.endLine(), location.endColumn(), token.getValue());
-        }
-        newCpdTokens.save();
-    }
+//    private void saveFunctionsComplexityDistribution(InputFile sonarFile, SourceFile squidFile) {
+//        Collection<SourceCode> squidFunctionsInFile = scanner.getIndex().search(new QueryByParent(squidFile),
+//                new QueryByType(SourceFunction.class));
+//        RangeDistributionBuilder complexityDistribution = new RangeDistributionBuilder(LIMITS_COMPLEXITY_METHODS);
+//        for (SourceCode squidFunction : squidFunctionsInFile) {
+//            complexityDistribution.add(squidFunction.getDouble(PlSqlMetric.COMPLEXITY));
+//        }
+//        
+//        context.<String>newMeasure().on(sonarFile)
+//                .forMetric(CoreMetrics.FUNCTION_COMPLEXITY_DISTRIBUTION)
+//                .withValue(complexityDistribution.build())
+//                .save();
+//    }
+//
+//    private void saveFilesComplexityDistribution(InputFile sonarFile, SourceFile squidFile) {
+//        RangeDistributionBuilder complexityDistribution = new RangeDistributionBuilder(LIMITS_COMPLEXITY_FILES);
+//        complexityDistribution.add(squidFile.getDouble(PlSqlMetric.COMPLEXITY));
+//        context.<String>newMeasure().on(sonarFile)
+//                .forMetric(CoreMetrics.FILE_COMPLEXITY_DISTRIBUTION)
+//                .withValue(complexityDistribution.build())
+//                .save();
+//    }
+//    
+//    private void saveCpdTokens(InputFile inputFile) {
+//        NewCpdTokens newCpdTokens = context.newCpdTokens().onFile(inputFile);
+//        Lexer lexer = PlSqlLexer.create(configuration);
+//        String fileName = inputFile.absolutePath();
+//        List<Token> tokens = lexer.lex(new File(fileName));
+//        for (Token token : tokens) {
+//            if (token.getType() == GenericTokenType.EOF) {
+//                continue;
+//            }
+//            TokenLocation location = TokenLocation.from(token);
+//            newCpdTokens.addToken(location.line(), location.column(), location.endLine(), location.endColumn(), token.getValue());
+//        }
+//        newCpdTokens.save();
+//    }
 
     @Override
     public String toString() {
