@@ -20,14 +20,13 @@
 package org.sonar.plsqlopen.squid;
 
 import java.io.File;
+import java.io.InterruptedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.List;
 
 import org.sonar.api.batch.fs.InputFile;
-import org.sonar.api.batch.rule.Checks;
 import org.sonar.api.batch.sensor.SensorContext;
-import org.sonar.api.measures.FileLinesContextFactory;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
 import org.sonar.plsqlopen.DefaultPlSqlVisitorContext;
@@ -44,8 +43,8 @@ import org.sonar.squidbridge.AstScanner;
 import org.sonar.squidbridge.AstScanner.Builder;
 import org.sonar.squidbridge.ProgressAstScanner;
 import org.sonar.squidbridge.SourceCodeBuilderVisitor;
-import org.sonar.squidbridge.SquidAstVisitor;
 import org.sonar.squidbridge.SquidAstVisitorContextImpl;
+import org.sonar.squidbridge.api.AnalysisException;
 import org.sonar.squidbridge.api.SourceCode;
 import org.sonar.squidbridge.api.SourceFile;
 import org.sonar.squidbridge.api.SourceFunction;
@@ -56,7 +55,7 @@ import org.sonar.squidbridge.metrics.ComplexityVisitor;
 import org.sonar.squidbridge.metrics.CounterVisitor;
 import org.sonar.squidbridge.metrics.LinesVisitor;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.base.Throwables;
 import com.sonar.sslr.api.AstNodeType;
 import com.sonar.sslr.api.Grammar;
 import com.sonar.sslr.api.RecognitionException;
@@ -91,14 +90,26 @@ public class PlSqlAstScanner {
         PlSqlVisitorContext visitorContext;
         try {
             visitorContext = new DefaultPlSqlVisitorContext<>(parser.parse(plSqlFile.content()), plSqlFile, components);
+            
+            for (PlSqlCheck check : checks) {
+                check.scanFile(visitorContext);
+            }
         } catch (RecognitionException e) {
             visitorContext = new DefaultPlSqlVisitorContext<>(plSqlFile, e, components);
             LOG.error("Unable to parse file: " + inputFile.absolutePath());
             LOG.error(e.getMessage());
+        } catch (Exception e) {
+            checkInterrupted(e);
+            throw new AnalysisException("Unable to analyze file: " + inputFile.absolutePath(), e);
+        } catch (Throwable e) {
+            throw new AnalysisException("Unable to analyze file: " + inputFile.absolutePath(), e);
         }
-
-        for (PlSqlCheck check : checks) {
-            check.scanFile(visitorContext);
+    }
+    
+    private static void checkInterrupted(Exception e) {
+        Throwable cause = Throwables.getRootCause(e);
+        if (cause instanceof InterruptedException || cause instanceof InterruptedIOException) {
+            throw new AnalysisException("Analysis cancelled", e);
         }
     }
 

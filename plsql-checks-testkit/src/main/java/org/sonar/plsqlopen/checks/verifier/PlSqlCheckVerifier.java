@@ -24,6 +24,9 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -66,8 +69,12 @@ public class PlSqlCheckVerifier extends PlSqlCheck {
         DefaultInputFile inputFile;
         
         try {
-            inputFile = new TestInputFileBuilder("key", filename).setLanguage("plsqlopen")
-                    .initMetadata(Files.toString(file, Charsets.UTF_8)).build();
+            inputFile = new TestInputFileBuilder("key", filename)
+                    .setLanguage("plsqlopen")
+                    .setCharset(StandardCharsets.UTF_8)
+                    .initMetadata(Files.toString(file, StandardCharsets.UTF_8))
+                    .setModuleBaseDir(Paths.get(""))
+                    .build();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -78,7 +85,10 @@ public class PlSqlCheckVerifier extends PlSqlCheck {
         SonarComponents components = new SonarComponents(context).getTestInstance();
         components.setFormsMetadata(metadata);
         
-        PlSqlAstScanner.scanSingleFile(file, components, ImmutableList.of(check, verifier));
+        //PlSqlAstScanner.scanSingleFile(file, components, ImmutableList.of(check, verifier));
+        
+        PlSqlAstScanner scanner = new PlSqlAstScanner(context, ImmutableList.of(new SymbolVisitor(), check, verifier), ImmutableList.of(inputFile), components);
+        scanner.scanFiles();
         
         Iterator<AnalyzerMessage> actualIssues = getActualIssues(components);
         List<TestIssue> expectedIssues = Ordering.natural().onResultOf(TestIssue::line).sortedCopy(verifier.expectedIssues);

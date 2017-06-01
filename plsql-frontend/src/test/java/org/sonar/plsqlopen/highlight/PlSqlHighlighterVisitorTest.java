@@ -23,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 import org.junit.Rule;
@@ -67,13 +68,13 @@ public class PlSqlHighlighterVisitorTest {
     private void verifyHighlighting() throws IOException {
     	File baseDir = temp.newFolder();
         File file = new File(baseDir, "test.sql");
-        String content = Files.toString(new File("src/test/resources/org/sonar/plsqlopen/highlight.sql"), Charsets.UTF_8);
-        Files.write(content.replaceAll("\\r\\n", "\n").replaceAll("\\n", eol), file, Charsets.UTF_8);
+        String content = Files.toString(new File("src/test/resources/highlight/highlight.sql"), StandardCharsets.UTF_8);
+        Files.write(content.replaceAll("\\r\\n", "\n").replaceAll("\\n", eol), file, StandardCharsets.UTF_8);
         
         DefaultInputFile inputFile = new TestInputFileBuilder("key", "test.sql")
                 .setLanguage("plsqlopen")
-                .setCharset(Charsets.UTF_8)
-                .initMetadata(Files.toString(file, Charsets.UTF_8))
+                .setCharset(StandardCharsets.UTF_8)
+                .initMetadata(Files.toString(file, StandardCharsets.UTF_8))
                 .setModuleBaseDir(baseDir.toPath())
                 .build();
         
@@ -81,7 +82,7 @@ public class PlSqlHighlighterVisitorTest {
         context.fileSystem().add(inputFile);
         SonarComponents components = new SonarComponents(context).getTestInstance();
 
-        PlSqlHighlighterVisitor highlighter = new PlSqlHighlighterVisitor(context);
+        PlSqlHighlighterVisitor highlighter = new PlSqlHighlighterVisitor(context, inputFile);
         TestPlSqlVisitorRunner.scanFile(file, highlighter);
         
         String key = inputFile.key();
