@@ -95,7 +95,7 @@ public class PlSqlSquidSensor implements Sensor {
     public void execute(SensorContext context) {
         this.context = context;
         List<PlSqlCheck> visitors = new ArrayList<>();
-        //visitors.add(new SymbolVisitor());
+        visitors.add(new SymbolVisitor());
         //visitors.add(new PlSqlHighlighterVisitor(context));
         visitors.addAll(checks.all());
         configuration = new PlSqlConfiguration(context.fileSystem().encoding());

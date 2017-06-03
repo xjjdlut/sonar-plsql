@@ -39,14 +39,13 @@ import com.sonar.sslr.api.RecognitionException;
 public class ParsingErrorCheck extends AbstractBaseCheck {
 
     public static final String CHECK_KEY = "ParsingError";
-
+    
     @Override
-    public void scanFile(PlSqlVisitorContext context) {
-      super.scanFile(context);
-      RecognitionException parsingException = context.parsingException();
-      if (parsingException != null) {
-          getContext().createLineViolation(this, parsingException.getMessage(), parsingException.getLine());
-      }
+    public void init() {
+        RecognitionException parsingException = getContext().parsingException();
+        if (parsingException != null) {
+            getContext().createLineViolation(this, parsingException.getMessage(), parsingException.getLine());
+        }
     }
     
 }

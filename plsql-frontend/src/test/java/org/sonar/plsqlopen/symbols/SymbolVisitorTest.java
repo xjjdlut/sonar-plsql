@@ -35,8 +35,10 @@ import org.sonar.api.batch.sensor.internal.SensorContextTester;
 import org.sonar.plsqlopen.PlSqlVisitorContext;
 import org.sonar.plsqlopen.TestPlSqlVisitorRunner;
 import org.sonar.plsqlopen.highlight.PlSqlHighlighterVisitor;
+import org.sonar.plsqlopen.squid.PlSqlAstScanner;
 
 import com.google.common.base.Charsets;
+import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
 
 public class SymbolVisitorTest {
@@ -66,7 +68,8 @@ public class SymbolVisitorTest {
         context.fileSystem().add(inputFile);
         
         SymbolVisitor visitor = new SymbolVisitor();
-        TestPlSqlVisitorRunner.scanFile(file, visitor);
+        PlSqlAstScanner scanner = new PlSqlAstScanner(context, ImmutableList.of(visitor), ImmutableList.of(inputFile), null);
+        scanner.scanFiles();
         
         (new SymbolHighlighter()).highlight(context.newSymbolTable().onFile(inputFile), visitor.getSymbolTable());
     }

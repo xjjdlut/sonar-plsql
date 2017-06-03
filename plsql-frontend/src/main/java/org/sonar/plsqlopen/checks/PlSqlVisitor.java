@@ -16,7 +16,11 @@ public class PlSqlVisitor {
 
     private PlSqlVisitorContext context;
 
-    private Set<AstNodeType> astNodeTypesToVisit = new HashSet<>();
+    private final Set<AstNodeType> astNodeTypesToVisit = new HashSet<>();
+    
+    public Set<AstNodeType> getAstNodeTypesToVisit() {
+        return astNodeTypesToVisit;
+    }
     
     public void init() {
      // default implementation does nothing
@@ -50,6 +54,10 @@ public class PlSqlVisitor {
 
     public PlSqlVisitorContext getContext() {
         return context;
+    }
+    
+    public void setContext(PlSqlVisitorContext context) {
+        this.context = context;
     }
 
     public void scanFile(PlSqlVisitorContext context) {

@@ -53,9 +53,9 @@ public class DefaultPlSqlVisitorContext<G extends Grammar> extends SquidAstVisit
     
     public DefaultPlSqlVisitorContext(AstNode rootTree, PlSqlFile plSqlFile, SonarComponents components) {
         this(rootTree, plSqlFile, null, components);
-        SymbolVisitor symbolTableBuilderVisitor = new SymbolVisitor();
+        /*SymbolVisitor symbolTableBuilderVisitor = new SymbolVisitor();
         symbolTableBuilderVisitor.scanFile(this);
-        symbolTable = symbolTableBuilderVisitor.getSymbolTable();
+        symbolTable = symbolTableBuilderVisitor.getSymbolTable();*/
     }
 
     public DefaultPlSqlVisitorContext(PlSqlFile pythonFile, RecognitionException parsingException, SonarComponents components) {

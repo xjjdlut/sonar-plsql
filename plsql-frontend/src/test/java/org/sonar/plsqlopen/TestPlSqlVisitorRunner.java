@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 
 import org.sonar.plsqlopen.checks.PlSqlVisitor;
 import org.sonar.plsqlopen.parser.PlSqlParser;
+import org.sonar.plsqlopen.squid.PlSqlAstScanner;
 import org.sonar.plsqlopen.squid.PlSqlConfiguration;
 
 import com.google.common.io.Files;

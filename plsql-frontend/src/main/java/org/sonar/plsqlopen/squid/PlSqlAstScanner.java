@@ -87,6 +87,8 @@ public class PlSqlAstScanner {
 
     private void scanFile(InputFile inputFile) {
         PlSqlFile plSqlFile = SonarQubePlSqlFile.create(inputFile, context);
+        PlSqlAstWalker walker = new PlSqlAstWalker(checks);
+        
         PlSqlVisitorContext visitorContext;
         try {
             visitorContext = new DefaultPlSqlVisitorContext<>(parser.parse(plSqlFile.content()), plSqlFile, components);
@@ -102,9 +104,7 @@ public class PlSqlAstScanner {
         }
         
         try {
-            for (PlSqlCheck check : checks) {
-                check.scanFile(visitorContext);
-            }
+            walker.walk(visitorContext);
         } catch (Throwable e) {
             throw new AnalysisException("Unable to analyze file: " + inputFile.absolutePath(), e);
         }

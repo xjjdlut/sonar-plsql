@@ -87,7 +87,7 @@ public class PlSqlCheckVerifier extends PlSqlCheck {
         
         //PlSqlAstScanner.scanSingleFile(file, components, ImmutableList.of(check, verifier));
         
-        PlSqlAstScanner scanner = new PlSqlAstScanner(context, ImmutableList.of(check, verifier), ImmutableList.of(inputFile), components);
+        PlSqlAstScanner scanner = new PlSqlAstScanner(context, ImmutableList.of(new SymbolVisitor(), check, verifier), ImmutableList.of(inputFile), components);
         scanner.scanFiles();
         
         Iterator<AnalyzerMessage> actualIssues = getActualIssues(components);
