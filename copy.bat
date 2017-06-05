@@ -1,0 +1,1 @@
+copy /y sonar-plsql-open-plugin\target\sonar-plsql-open-plugin-1.1.0-SNAPSHOT.jar C:\Users\felipe.zorzo\Documents\sonar\sonarqube-6.4-RC3\extensions\plugins

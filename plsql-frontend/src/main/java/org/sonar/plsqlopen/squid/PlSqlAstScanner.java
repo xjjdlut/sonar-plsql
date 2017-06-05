@@ -95,9 +95,9 @@ public class PlSqlAstScanner {
         
         PlSqlVisitorContext visitorContext;
         try {
-            visitorContext = new DefaultPlSqlVisitorContext<>(parser.parse(plSqlFile.content()), plSqlFile, components);
+            visitorContext = new DefaultPlSqlVisitorContext(parser.parse(plSqlFile.content()), plSqlFile, components);
         } catch (RecognitionException e) {
-            visitorContext = new DefaultPlSqlVisitorContext<>(plSqlFile, e, components);
+            visitorContext = new DefaultPlSqlVisitorContext(plSqlFile, e, components);
             LOG.error("Unable to parse file: " + inputFile.absolutePath());
             LOG.error(e.getMessage());
         } catch (Exception e) {

@@ -40,11 +40,9 @@ import org.sonar.plsqlopen.squid.PlSqlAstScanner;
 import org.sonar.plsqlopen.squid.PlSqlConfiguration;
 import org.sonar.plsqlopen.squid.SonarQubePlSqlFile;
 import org.sonar.plsqlopen.symbols.SymbolVisitor;
-import org.sonar.squidbridge.AstScanner;
 
 import com.google.common.collect.Lists;
 import com.sonar.sslr.api.GenericTokenType;
-import com.sonar.sslr.api.Grammar;
 import com.sonar.sslr.api.Token;
 import com.sonar.sslr.impl.Lexer;
 
@@ -52,7 +50,6 @@ public class PlSqlSquidSensor implements Sensor {
 
     private final PlSqlChecks checks;
 
-    private AstScanner<Grammar> scanner;
     private SonarComponents components;
     private SensorContext context;
     private PlSqlConfiguration configuration;
